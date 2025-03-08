@@ -74,6 +74,7 @@ class Player(BaseSprite):
         self.left_image = transform.flip(self.image, True, False)
         self.speed_x = 10
         self.speed_y = 3
+        self.max_speed = 15
         self.hp = 100
         self.damage_timer = time.get_ticks()#фіксуєм час від початку гри
         self.rect.centerx = x
@@ -83,22 +84,59 @@ class Player(BaseSprite):
         keys = key.get_pressed()
         if keys[K_ESCAPE]:
             run = False
-        if keys[K_w] and self.rect.y > 0:
-            if self.speed_y < 15:
-                self.speed_y += 0.25
-            #self.rect.y -= self.speed_y
-        if keys[K_s] and self.rect.y < HEIGHT - self.rect.height:
-            self.speed_y = 5
-            #self.rect.y += self.speed_y
         if keys[K_a] and self.rect.x > 0:
             self.rect.x -= self.speed_x
             self.image = self.left_image
         if keys[K_d] and self.rect.x < WIDTH - self.rect.width:
             self.rect.x += self.speed_x
             self.image = self.right_image
-        
+
+        if keys[K_w] and self.rect.y > 0:
+            if self.speed_y < self.max_speed:
+                self.speed_y += 0.1
+            if self.rect.y > HEIGHT // 2:
+                self.rect.y -= self.speed_x
+        if keys[K_s] and self.rect.y < HEIGHT and self.speed_y>0:
+            self.speed_y -= 0.25
+            if self.rect.bottom < HEIGHT:
+                self.rect.y += self.speed_x
+
         if not keys[K_w] and self.speed_y > 3:
             self.speed_y -= 0.1
+          
+        coll_list = sprite.spritecollide(self, enemy_group, False, sprite.collide_mask)
+        if len(coll_list)>0:
+            now = time.get_ticks()
+            if now-self.damage_timer > 1000:
+                self.damage_timer = time.get_ticks() #обнуляємо таймер дамагу
+                self.hp -= 10 #віднімаємо HP
+                hp_label.set_text(f"HP: {self.hp}")
+                if self.hp <= 0:
+                    finish = True
+                    result.set_text("Game over")
+                    all_labels.add(restart)
+                    player.kill()
+                    for e in enemy_group:
+                        e.kill()
+
+#створення класу ворога
+class Enemy(BaseSprite):
+    def __init__(self, image, width, height):
+        x = random.randint(0, WIDTH - width)
+        y = random.randint(400, HEIGHT) * -1
+        super().__init__(image, x, y, width, height)
+        self.speed_x = 10
+        self.speed_y = 3
+        self.max_speed = 15
+        self.hp = 100
+    
+    def update(self):
+        self.rect.y += self.speed_y + player.speed_y
+        if self.rect.y > HEIGHT:
+            self.kill()
+        
+
+
 
 
 player = Player(player_img, WIDTH // 2, HEIGHT-200, 70, 70)
@@ -109,6 +147,14 @@ run = True
 bg1_y = 0
 bg2_y = -HEIGHT
 
+result = Label("", 300, 300, fontsize=70)
+restart = Label("Press R to restart", 300, 450, fontsize=40)
+all_labels.remove(restart)
+hp_label = Label(f"HP: {player.hp}", 10, 10)
+
+spawn_time = time.get_ticks()
+enemy_group = sprite.Group()
+max_spawn_time = 2000
 
 while run:
     for e in event.get():
@@ -120,13 +166,20 @@ while run:
 
     if not finish:
         all_sprites.update()
+        now = time.get_ticks()
+        if now - spawn_time > random.randint(400, max_spawn_time):
+            spawn_time = now
+            enemy_count = random.randint(1,3)
+            for i in range(enemy_count):
+                enemy_group.add(Enemy(enemy_img, 120, 80))
+            
     
-    bg1_y += player.speed_y
-    bg2_y += player.speed_y
-    if bg1_y > HEIGHT:
-        bg1_y = -HEIGHT
-    if bg2_y > HEIGHT:
-        bg2_y = -HEIGHT
+        bg1_y += player.speed_y
+        bg2_y += player.speed_y
+        if bg1_y > HEIGHT:
+            bg1_y = -HEIGHT
+        if bg2_y > HEIGHT:
+            bg2_y = -HEIGHT
     window.blit(bg, (0, bg1_y))
     window.blit(bg, (0, bg2_y))
 
