@@ -16,13 +16,13 @@ window = display.set_mode((WIDTH, HEIGHT), flags=FULLSCREEN)
 display.set_caption("Space_shooter")#назва вікна
 clock = time.Clock()
 
-
 #завантаження картинок
 bg = image.load("image/background.jpg")
 bg = transform.scale(bg, (WIDTH, HEIGHT))
 
-player_img = image.load("image/player.png")
+player_img = image.load("image/player1.png")
 enemy_img = image.load("image/enemy.png")
+enemy_img1 = image.load("image/enemy1.png")
 #coin_img = image.load("image/coin.png")
 all_sprites = sprite.Group()
 all_labels = sprite.Group()
@@ -139,7 +139,7 @@ class Enemy(BaseSprite):
 
 
 
-player = Player(player_img, WIDTH // 2, HEIGHT-200, 70, 70)
+player = Player(player_img, WIDTH // 2, HEIGHT-200, 50, 50)
 
 finish = False
 run = True
@@ -154,7 +154,7 @@ hp_label = Label(f"HP: {player.hp}", 10, 10)
 
 spawn_time = time.get_ticks()
 enemy_group = sprite.Group()
-max_spawn_time = 2000
+max_spawn_time = 1000
 
 while run:
     for e in event.get():
@@ -169,9 +169,10 @@ while run:
         now = time.get_ticks()
         if now - spawn_time > random.randint(400, max_spawn_time):
             spawn_time = now
-            enemy_count = random.randint(1,3)
+            enemy_img_rand = random.choice([enemy_img, enemy_img1])
+            enemy_count = random.randint(1,2)
             for i in range(enemy_count):
-                enemy_group.add(Enemy(enemy_img, 120, 80))
+                enemy_group.add(Enemy(enemy_img_rand, 60, 60))
             
     
         bg1_y += player.speed_y
