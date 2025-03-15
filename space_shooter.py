@@ -24,7 +24,7 @@ player_img = image.load("image/player1.png")
 player_blinck_img = image.load("image/player_blinck1.png")
 enemy_img = image.load("image/enemy.png")
 enemy_img1 = image.load("image/enemy1.png")
-fire_img = image.load("image/player.png")
+fire_img = image.load("image/fire.png")
 #coin_img = image.load("image/coin.png")
 all_sprites = sprite.Group()
 all_labels = sprite.Group()
@@ -89,7 +89,7 @@ class Player(BaseSprite):
 
 
     def fire(self):
-        bullet = Bullet(self.rect, fire_img, 20, 20)
+        bullet = Bullet(self.rect, fire_img, 10, 20)
         self.bullets.add(bullet)
         #fire_sound.play()
 
