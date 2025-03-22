@@ -1,6 +1,6 @@
 from pygame import *
 import random 
-
+import pygame_menu
 init()
 font.init()
 #mixer.init()
@@ -189,9 +189,6 @@ run = True
 bg1_y = 0
 bg2_y = -HEIGHT
 
-result = Label("", 300, 300, fontsize=70)
-restart = Label("Press R to restart", 300, 450, fontsize=40)
-all_labels.remove(restart)
 hp_label = Label(f"HP: {player.hp}", 10, 10)
 score_label = Label(f"HP: {player.score}", 10, 40)
 
@@ -199,13 +196,77 @@ spawn_time = time.get_ticks()
 enemy_group = sprite.Group()
 max_spawn_time = 1000
 
+
+#menu
+
+def set_difficulty(value, difficulty):
+    # Do the job here !
+    pass
+
+def start_the_game():
+    menu.disable()
+
+def restart_the_game():
+    global finish
+    if finish:
+        player.hp = 100
+        player.score = 0
+        hp_label.set_text(f"HP: {player.hp}")
+        score_label.set_text(f"Score: {player.score}")
+        finish = False
+        for enemy in enemy_group:
+            enemy.kill()
+        player.rect.x = WIDTH/2
+        player.rect.y = HEIGHT-200
+        finish_menu.disable()
+        
+
+
+mytheme = pygame_menu.Theme(background_color=(0, 0, 0, 0), # transparent background
+                title_background_color=(0, 0, 0, 0),
+                title_font_shadow=True,
+                widget_padding=25,
+                widget_font=FONT,
+                title_font_size=80,
+                title_bar_style=pygame_menu.widgets.MENUBAR_STYLE_NONE,
+                widget_font_color=(255, 255, 255),
+                widget_font_size=35,
+                )
+
+myimage = pygame_menu.baseimage.BaseImage(
+    image_path="image/background.jpg",
+    drawing_mode=pygame_menu.baseimage.IMAGE_MODE_REPEAT_XY,
+)
+
+mytheme.background_color = myimage
+
+menu = pygame_menu.Menu('', WIDTH, HEIGHT,
+                       theme=mytheme)
+
+menu.add.button('Play', start_the_game)
+menu.add.selector('Difficulty :', [('Easy', 1), ('Hard', 2)], onchange=set_difficulty)
+menu.add.button('Quit', pygame_menu.events.EXIT)
+
+
+finish_menu = pygame_menu.Menu('', WIDTH, HEIGHT,
+                       theme=mytheme)
+
+finish_menu.add.button('RESTART', restart_the_game)
+finish_menu.add.selector('Difficulty :', [('Easy', 1), ('Hard', 2)], onchange=set_difficulty)
+finish_menu.add.button('Quit', pygame_menu.events.EXIT)
+
+menu.mainloop(window)
+
 while run:
+    window.fill((24,19,41))
+
     for e in event.get():
         if e.type == QUIT:
             run = False
         if e.type == KEYDOWN:
             if e.key == K_ESCAPE:
-                run = False
+                menu.enable()
+                menu.mainloop(window)
 
 
     if not finish:
@@ -226,11 +287,8 @@ while run:
 
         if player.hp <= 0:
             finish = True
-            result.set_text("Game over")
-            all_labels.add(restart)
-            player.kill()
-            for e in enemy_group:
-                e.kill()
+            finish_menu.enable()
+            finish_menu.mainloop(window)
         bg1_y += player.speed_y
         bg2_y += player.speed_y
         if bg1_y > HEIGHT:
